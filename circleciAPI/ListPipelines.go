@@ -60,7 +60,7 @@ func (l *ListPipelines) FetchPipelineItems(nptoken *string, retrievedTime time.T
 			continue
 		}
 
-		pipeline := models.Pipeline{PipelineID: pipeline.ID, JSON: string(jstr), CreatedAt: pipeline.CreatedAt}
+		pipeline := models.Pipeline{PipelineID: pipeline.ID, JSON: string(jstr), CreatedAt: pipeline.CreatedAt, Branch: pipeline.Vcs.Branch}
 		result := l.db.Create(&pipeline)
 		if result.Error != nil {
 			log.Debug("Can't create pipeline: ", result.Error)

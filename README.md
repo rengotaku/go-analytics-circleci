@@ -17,5 +17,3 @@ ListPipelines, ListWorkflowsByPipelineId, ListWorkflowJobs, DetailJobs, Retrieve
   * Get workflow jobs
 * SequenceColumns
   * Get data CSV format
-* RetrieveBranch
-  * Embed value in column of branch, but no longer using

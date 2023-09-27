@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 	"rengotaku/go-analytics-circleci/circleciAPI"
 	"rengotaku/go-analytics-circleci/libs"
@@ -27,6 +28,7 @@ const (
 	DetailJobs
 	RetrieveBranch
 	SequenceColumns
+	RetrieveStatus
 	Unknown
 )
 
@@ -42,6 +44,8 @@ func compAPITypeToString(s *string) APIType {
 		return DetailJobs
 	case "RetrieveBranch":
 		return RetrieveBranch
+	case "RetrieveStatus":
+		return RetrieveStatus
 	case "SequenceColumns":
 		return SequenceColumns
 	}
@@ -167,6 +171,42 @@ func main() {
 
 				pipeline.Branch = pip.Vcs.Branch
 				db.Save(&pipeline)
+			}
+		}
+
+		return
+
+	case RetrieveStatus:
+		log.Debugln("RetrieveStatus executed")
+
+		cnt, err := models.GetWorkflowWitouhtStatus(db)
+		if err != nil {
+			log.Fatal("DB error: ", err)
+		}
+
+		oneTime := 10
+
+		offset := int(cnt) / oneTime
+		if int(cnt)%oneTime > 0 {
+			offset += oneTime
+		}
+
+		log.Debug("offset: ", offset)
+
+		for i := 0; i < offset; i++ {
+			ws, err := models.GetAllWitouhtStatus(db, oneTime)
+			if err != nil {
+				log.Fatal("DB error: ", err)
+			}
+
+			for _, w := range ws {
+				var workf circleci.Workflow
+				if err := json.Unmarshal([]byte(w.JSON), &workf); err != nil {
+					panic(err)
+				}
+
+				w.Status = fmt.Sprintf("%v", workf.Status)
+				db.Save(&w)
 			}
 		}
 

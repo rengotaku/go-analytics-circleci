@@ -38,6 +38,7 @@ func PrintSequences(db *gorm.DB) {
 			p.branch = 'master' 
 			and j.name = 'rspec' 
 			and j.status in ('success', 'failed') 
+			and j.duration < 180 * 1000 * 60
 		order by 
 			j.created_at;
 	`
@@ -58,26 +59,28 @@ func PrintSequences(db *gorm.DB) {
 	for _, v := range msr {
 		msr2[strconv.Itoa(v.Seconds)] = v
 	}
-	keys := make([]string, 0, len(msr))
-	for k, _ := range msr2 {
+
+	msr3 := make(map[string]SequenceResult)
+	for _, v := range msr2 {
+		date, _ := time.Parse("2006-01-02 15:04:05", v.CreatedAt)
+		if _, ok := msr3[date.Format("2006-01-02")]; !ok {
+			msr3[date.Format("2006/01/02")] = v
+		}
+	}
+
+	keys := make([]string, 0, len(msr3))
+
+	for k := range msr3 {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	msr3 := make(map[string]SequenceResult)
-	for _, k := range keys {
-		v := msr2[k]
-
-		date, _ := time.Parse("2006-01-02 15:04:05", v.CreatedAt)
-		if _, ok := msr3[date.Format("2006-01-02")]; !ok {
-			msr3[date.Format("2006-01-02")] = v
-		}
-	}
-
 	log.Debug("=======================================")
-	for _, v := range msr3 {
+	for _, k := range keys {
+		v := msr3[k]
 		// 1000ms/60s = 1 minutes
-		fmt.Printf("%v,%v,%v,%d,%v\n", v.PipelineId, v.WorkflowId, v.Status, v.Duration/1000/60, v.CreatedAt)
+		fmt.Printf("%v,%d,%v\n", v.Status, v.Duration/1000/60, k)
+		// fmt.Printf("%v,%v,%v,%d,%v\n", v.PipelineId, v.WorkflowId, v.Status, v.Duration/1000/60, v.CreatedAt)
 	}
 	log.Debug("=======================================")
 

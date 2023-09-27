@@ -3,6 +3,7 @@ package circleciAPI
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"rengotaku/go-analytics-circleci/models"
 	"time"
 
@@ -66,7 +67,7 @@ func (l *ListWorkflowsByPipelineId) persistWorkflow(pipelines []models.Pipeline)
 		for _, workflow := range workflows {
 			jstr, _ := json.Marshal(*workflow)
 
-			w := models.Workflow{PipelineID: workflow.PipelineID, WorkflowID: workflow.ID, PipelineNumber: workflow.PipelineNumber, JSON: string(jstr), CreatedAt: workflow.CreatedAt}
+			w := models.Workflow{PipelineID: workflow.PipelineID, WorkflowID: workflow.ID, PipelineNumber: workflow.PipelineNumber, JSON: string(jstr), CreatedAt: workflow.CreatedAt, Status: fmt.Sprintf("%v", workflow.Status)}
 			result := l.db.Create(&w)
 			if result.Error != nil {
 				log.Debug("Can't create workflow: ", result.Error)

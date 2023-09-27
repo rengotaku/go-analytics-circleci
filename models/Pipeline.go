@@ -17,13 +17,13 @@ type Pipeline struct {
 
 func GetPipelineWitouhtBranchCount(db *gorm.DB) (int64, error) {
 	var cnt int64
-	err := db.Model(&Pipeline{}).Where("branch is NULL").Count(&cnt).Error
+	err := db.Model(&Pipeline{}).Where("branch is NULL or branch = \"\"").Count(&cnt).Error
 	return cnt, err
 }
 
 func GetAllWitouhtBranch(db *gorm.DB, limit int) ([]Pipeline, error) {
 	var pipelines []Pipeline
-	err := db.Model(&Pipeline{}).Where("branch is NULL").Limit(limit).Find(&pipelines).Error
+	err := db.Model(&Pipeline{}).Where("branch is NULL or branch = \"\"").Limit(limit).Find(&pipelines).Error
 	return pipelines, err
 }
 
